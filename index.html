@@ -34,6 +34,13 @@
       --text-color: rgba(255,255,255,0.96);
     }
 
+    /* prevent rubber-band/scroll on mobile */
+    html, body {
+      height: 100%;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: auto;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -280,6 +287,38 @@
       .links a { transition: none; }
       #snow { display: none; }
     }
+
+    /* Mobile: lock page vertical pan but allow card inner scroll */
+    @media (max-width: 768px) {
+      html, body {
+        height: 100%;
+        min-height: 100vh;
+        overflow: hidden;
+        touch-action: pan-x pinch-zoom;
+        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+      }
+
+      /* center card with fixed positioning for consistent mobile rendering */
+      .card {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) !important;
+        max-height: calc(100vh - 32px);
+        width: min(92%, 360px);
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        border-radius: 18px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      }
+
+      /* disable entrance animation and force visible state on small screens */
+      body.is-loaded .card {
+        animation: none !important;
+        opacity: 1 !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -287,7 +326,7 @@
   <div class="card">
     <div class="avatar-wrap">
       <a class="avatar-link" href="https://youtu.be/1wYXSxCvN68?si=BSdqHG6y8C0xYXn8" target="_blank" rel="noopener noreferrer" aria-label="Open YouTube video">
-        <img src="avatar.jpg" srcset="avatar.jpg 1x, avatar@2x.png 2x" alt="Аватар MyNameRoman" class="avatar-img" loading="lazy" decoding="async" width="128" height="128" />
+        <img src="avatar.jpg" alt="Аватар MyNameRoman" class="avatar-img" decoding="async" width="128" height="128" />
       </a>
     </div>
 
@@ -393,6 +432,39 @@
       // trigger entrance animation after a tick
       requestAnimationFrame(()=>{ document.body.classList.add('is-loaded'); });
       loop();
+
+      // disable vertical rubber-band on mobile while allowing card scrolling
+      (function disableMobileScroll(){
+        if (typeof window === 'undefined') return;
+        if (!('ontouchstart' in window)) return;
+        const card = document.querySelector('.card');
+        function canScroll(el){ return el && el.scrollHeight > el.clientHeight; }
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => {
+          if (window.innerWidth > 768) return;
+          startY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e){
+          if (window.innerWidth > 768) return;
+          const y = e.touches[0].clientY;
+          const delta = y - startY;
+
+          if (canScroll(card)) {
+            const atTop = card.scrollTop === 0;
+            const atBottom = Math.abs(card.scrollHeight - card.scrollTop - card.clientHeight) <= 1;
+            // if trying to scroll past edges, prevent default (rubber-band)
+            if ((atTop && delta > 0) || (atBottom && delta < 0)) {
+              e.preventDefault();
+            } else {
+              // allow normal scroll inside the card
+              return;
+            }
+          } else {
+            e.preventDefault();
+          }
+        }, { passive: false });
+      })();
     })();
   </script>
 
