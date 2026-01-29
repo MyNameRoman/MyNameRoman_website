@@ -13,6 +13,9 @@
 
     :root {
       --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255,255,255,0.12);
+      --card-gradient-top: rgba(255,255,255,0.04);
+      --card-gradient-bottom: rgba(255,255,255,0.02);
       --link-bg: rgba(255,255,255,0.12);
       --link-bg-hover: rgba(255,255,255,0.22);
       --text-color: #ffffff;
@@ -41,24 +44,54 @@
     }
 
     .card {
-      backdrop-filter: blur(14px);
-      background: var(--card-bg);
+      position: relative;
+      z-index: 2;
+      backdrop-filter: blur(20px) saturate(1.05);
+      background: linear-gradient(180deg, var(--card-gradient-top), var(--card-gradient-bottom));
+      border: 1px solid var(--card-border);
       border-radius: 24px;
       padding: 32px 28px;
       width: 100%;
       max-width: 360px;
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.02);
+      transform: translateY(18px) scale(.995);
+      opacity: 0;
+      will-change: transform, opacity;
     }
 
-    .avatar {
+    /* entrance animation */
+    @keyframes popIn {
+      0% { transform: translateY(18px) scale(.995); opacity: 0; }
+      60% { transform: translateY(-6px) scale(1.01); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    body.is-loaded .card {
+      animation: popIn 1200ms cubic-bezier(.2,.9,.3,1) 160ms both;
+    }
+
+    .avatar-wrap {
       width: 128px;
       height: 128px;
       border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 16px;
+      overflow: hidden;
+      margin: 0 auto 16px;
       border: 3px solid rgba(255,255,255,0.35);
-      image-rendering: auto;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      -webkit-user-drag: none;
+      image-rendering: -webkit-optimize-contrast;
     }
 
     h1 {
@@ -83,17 +116,45 @@
       padding: 12px 14px;
       border-radius: 12px;
       margin-bottom: 12px;
-      transition: background 0.2s ease;
+      transition: background 180ms ease, transform 220ms ease, box-shadow 220ms ease;
+      transform-origin: center;
+      will-change: transform;
+    }
+
+    .links a:focus-visible {
+      outline: 2px solid rgba(255,255,255,0.14);
+      outline-offset: 3px;
     }
 
     .links a:hover {
       background: var(--link-bg-hover);
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+    }
+
+    .links a .icon {
+      transition: transform 220ms ease;
+    }
+
+    .links a:hover .icon {
+      transform: translateX(6px) scale(1.05);
     }
 
     .icon {
       width: 22px;
       height: 22px;
       object-fit: contain;
+      display: block;
+    }
+
+    /* canvas snow sits between background and content */
+    #snow {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
     }
 
     @media (min-width: 768px) {
@@ -104,12 +165,20 @@
       h1 { font-size: 24px; }
       p { font-size: 15px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; animation: none !important; }
+      .links a { transition: none; }
+      #snow { display: none; }
+    }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <img src="avatar.png" alt="Avatar" class="avatar" />
+    <div class="avatar-wrap">
+      <img src="avatar.png" srcset="avatar.png 1x, avatar@2x.png 2x" alt="Avatar" class="avatar-img" loading="lazy" decoding="async" />
+    </div>
 
     <h1>MyNameRoman</h1>
     <p>DevOps · Aboba · Silly-boy</p>
@@ -129,6 +198,92 @@
       </a>
     </div>
   </div>
+
+  <canvas id="snow" aria-hidden="true"></canvas>
+
+  <script>
+    (function(){
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const canvas = document.getElementById('snow');
+      const ctx = canvas.getContext('2d');
+      let W = canvas.width = innerWidth;
+      let H = canvas.height = innerHeight;
+
+      window.addEventListener('resize', () => {
+        W = canvas.width = innerWidth;
+        H = canvas.height = innerHeight;
+      });
+
+      const flakes = [];
+      const flakeCount = Math.min(120, Math.max(24, Math.floor(W / 30)));
+
+      function rand(min, max){ return Math.random() * (max - min) + min; }
+
+      for (let i=0;i<flakeCount;i++){
+        flakes.push({
+          x: rand(0, W),
+          y: rand(-H, H),
+          r: rand(2.4, 8.6),
+          d: rand(0.8, 2.2),
+          vx: rand(-0.6, 0.8),
+          sway: rand(0.6, 2.2),
+          phase: rand(0, Math.PI*2),
+          opacity: rand(0.6, 1),
+          twinkle: rand(0.002, 0.02)
+        });
+      }
+
+      let lastTime = 0;
+
+      function draw(time){
+        ctx.clearRect(0,0,W,H);
+        for (let f of flakes){
+          ctx.beginPath();
+          const alpha = Math.max(0, Math.min(1, f.opacity * (0.85 + 0.25 * Math.sin(f.phase + time * f.twinkle))));
+          const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r*2);
+          g.addColorStop(0, `rgba(255,255,255,${alpha})`);
+          g.addColorStop(0.6, `rgba(255,255,255,${Math.max(0.35, alpha-0.25)})`);
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g;
+          ctx.shadowBlur = Math.min(12, f.r * 1.6);
+          ctx.shadowColor = `rgba(255,255,255,${Math.min(0.9, alpha)})`;
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function update(){
+        for (let f of flakes){
+          f.y += 0.8 * f.d + f.r * 0.2;
+          f.x += Math.sin((f.y + f.phase) * 0.008) * f.sway + f.vx;
+          f.phase += 0.002; // subtle phase drift
+          if (f.y > H + f.r) {
+            f.y = -f.r * rand(1, 6);
+            f.x = rand(0, W);
+            f.r = rand(2.4, 8.6);
+            f.d = rand(0.8, 2.2);
+            f.vx = rand(-0.6, 0.8);
+            f.sway = rand(0.6, 2.2);
+            f.opacity = rand(0.6, 1);
+            f.twinkle = rand(0.002, 0.02);
+          }
+        }
+      }
+
+      function loop(ts){
+        const t = ts || performance.now();
+        draw(t * 0.001);
+        update();
+        requestAnimationFrame(loop);
+      }
+
+      // trigger entrance animation after a tick
+      requestAnimationFrame(()=>{ document.body.classList.add('is-loaded'); });
+      loop();
+    })();
+  </script>
 
 </body>
 </html>
