@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyNameRoman page </title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --link-bg: rgba(255,255,255,0.12);
+      --link-bg-hover: rgba(255,255,255,0.22);
+      --text-color: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url('background.jpg') center / cover no-repeat;
+      filter: blur(18px) brightness(0.7);
+      transform: scale(1.1);
+      z-index: -1;
+    }
+
+    .card {
+      backdrop-filter: blur(14px);
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+    }
+
+    .avatar {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 16px;
+      border: 3px solid rgba(255,255,255,0.35);
+      image-rendering: auto;
+    }
+
+    h1 {
+      margin: 8px 0 4px;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0 0 20px;
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
+    .links a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-color);
+      background: var(--link-bg);
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: background 0.2s ease;
+    }
+
+    .links a:hover {
+      background: var(--link-bg-hover);
+    }
+
+    .icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    @media (min-width: 768px) {
+      .card {
+        max-width: 420px;
+        padding: 36px 32px;
+      }
+      h1 { font-size: 24px; }
+      p { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <img src="avatar.png" alt="Avatar" class="avatar" />
+
+    <h1>MyNameRoman</h1>
+    <p>DevOps · Gamer · Silly-boy</p>
+
+    <div class="links">
+      <a href="https://t.me/RaikoNet_Redirect" target="_blank">
+        <img src="icons/telegram.svg" class="icon" alt="My VPN project" />
+        My VPN project
+      </a>
+      <a href="https://github.com/MyNameRoman" target="_blank">
+        <img src="icons/github.svg" class="icon" alt="GitHub" />
+        GitHub
+      </a>
+      <a href="https://steamcommunity.com/id/MyNameRoman/" target="_blank">
+        <img src="icons/steam.svg" class="icon" alt="Steam" />
+        Steam
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>
