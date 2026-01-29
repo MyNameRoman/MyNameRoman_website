@@ -12,7 +12,9 @@
     * { box-sizing: border-box; }
 
     :root {
-      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255,255,255,0.12);
+      --card-gradient-top: rgba(255,255,255,0.04);
+      --card-gradient-bottom: rgba(255,255,255,0.02);
       --link-bg: rgba(255,255,255,0.12);
       --link-bg-hover: rgba(255,255,255,0.22);
       --text-color: #ffffff;
@@ -41,23 +43,51 @@
     }
 
     .card {
-      backdrop-filter: blur(14px);
-      background: var(--card-bg);
+      position: relative;
+      z-index: 2;
+      backdrop-filter: blur(20px) saturate(1.05);
+      background: linear-gradient(180deg, var(--card-gradient-top), var(--card-gradient-bottom));
+      border: 1px solid var(--card-border);
       border-radius: 24px;
       padding: 32px 28px;
       width: 100%;
       max-width: 360px;
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.02);
+      transform: translateY(18px) scale(.995);
+      opacity: 0;
     }
 
-    .avatar {
+    /* entrance animation */
+    @keyframes popIn {
+      0% { transform: translateY(18px) scale(.995); opacity: 0; }
+      60% { transform: translateY(-6px) scale(1.01); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    body.is-loaded .card {
+      animation: popIn 620ms cubic-bezier(.2,.9,.3,1) 120ms both;
+    }
+
+    .avatar-wrap {
       width: 128px;
       height: 128px;
       border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 16px;
+      overflow: hidden;
+      margin: 0 auto 16px;
       border: 3px solid rgba(255,255,255,0.35);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      -webkit-user-drag: none;
       image-rendering: auto;
     }
 
@@ -83,17 +113,44 @@
       padding: 12px 14px;
       border-radius: 12px;
       margin-bottom: 12px;
-      transition: background 0.2s ease;
+      transition: background 180ms ease, transform 220ms ease, box-shadow 220ms ease;
+      transform-origin: center;
+    }
+
+    .links a:focus-visible {
+      outline: 2px solid rgba(255,255,255,0.14);
+      outline-offset: 3px;
     }
 
     .links a:hover {
       background: var(--link-bg-hover);
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+    }
+
+    .links a .icon {
+      transition: transform 220ms ease;
+    }
+
+    .links a:hover .icon {
+      transform: translateX(6px) scale(1.05);
     }
 
     .icon {
       width: 22px;
       height: 22px;
       object-fit: contain;
+      display: block;
+    }
+
+    /* canvas snow sits between background and content */
+    #snow {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
     }
 
     @media (min-width: 768px) {
@@ -104,12 +161,20 @@
       h1 { font-size: 24px; }
       p { font-size: 15px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; animation: none !important; }
+      .links a { transition: none; }
+      #snow { display: none; }
+    }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <img src="avatar.png" alt="Avatar" class="avatar" />
+    <div class="avatar-wrap">
+      <img src="avatar.jpg" alt="Avatar" class="avatar-img" loading="lazy" decoding="async" />
+    </div>
 
     <h1>MyNameRoman</h1>
     <p>DevOps · Aboba · Silly-boy</p>
@@ -129,6 +194,74 @@
       </a>
     </div>
   </div>
+
+  <canvas id="snow" aria-hidden="true"></canvas>
+
+  <script>
+    (function(){
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const canvas = document.getElementById('snow');
+      const ctx = canvas.getContext('2d');
+      let W = canvas.width = innerWidth;
+      let H = canvas.height = innerHeight;
+
+      window.addEventListener('resize', () => {
+        W = canvas.width = innerWidth;
+        H = canvas.height = innerHeight;
+      });
+
+      const flakes = [];
+      const flakeCount = Math.min(160, Math.floor(W / 7));
+
+      function rand(min, max){ return Math.random() * (max - min) + min; }
+
+      for (let i=0;i<flakeCount;i++){
+        flakes.push({
+          x: rand(0, W),
+          y: rand(-H, H),
+          r: rand(0.8, 3.6),
+          d: rand(0.5, 1.5),
+          vx: rand(-0.5, 0.8)
+        });
+      }
+
+      function draw(){
+        ctx.clearRect(0,0,W,H);
+        for (let f of flakes){
+          ctx.beginPath();
+          const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r*2);
+          g.addColorStop(0, 'rgba(255,255,255,0.95)');
+          g.addColorStop(0.6, 'rgba(255,255,255,0.7)');
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g;
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+
+      function update(){
+        for (let f of flakes){
+          f.y += 0.6 * f.d + f.r * 0.15;
+          f.x += Math.sin(f.y * 0.01) * 0.6 + f.vx;
+          if (f.y > H + f.r) {
+            f.y = -10;
+            f.x = rand(0, W);
+          }
+        }
+      }
+
+      function loop(){
+        draw();
+        update();
+        requestAnimationFrame(loop);
+      }
+
+      // trigger entrance animation after a tick
+      requestAnimationFrame(()=>{ document.body.classList.add('is-loaded'); });
+      loop();
+    })();
+  </script>
 
 </body>
 </html>
