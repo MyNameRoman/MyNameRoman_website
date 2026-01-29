@@ -16,9 +16,9 @@
       --card-border: rgba(255,255,255,0.12);
       --card-gradient-top: rgba(255,255,255,0.04);
       --card-gradient-bottom: rgba(255,255,255,0.02);
-      --link-bg: rgba(255,255,255,0.12);
-      --link-bg-hover: rgba(255,255,255,0.22);
-      --text-color: #ffffff;
+      --link-bg: rgba(255,255,255,0.08);
+      --link-bg-hover: rgba(255,255,255,0.14);
+      --text-color: rgba(255,255,255,0.96);
     }
 
     body {
@@ -31,14 +31,17 @@
       color: var(--text-color);
       position: relative;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
 
     body::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: url('background.jpg') center / cover no-repeat;
-      filter: blur(18px) brightness(0.7);
+      background: linear-gradient(rgba(6,8,10,0.36), rgba(6,8,10,0.36)), url('background.jpg') center / cover no-repeat;
+      filter: blur(10px) brightness(0.62);
       transform: scale(1.1);
       z-index: -1;
     }
@@ -46,18 +49,44 @@
     .card {
       position: relative;
       z-index: 2;
-      backdrop-filter: blur(20px) saturate(1.05);
-      background: linear-gradient(180deg, var(--card-gradient-top), var(--card-gradient-bottom));
-      border: 1px solid var(--card-border);
+      backdrop-filter: blur(14px) saturate(1.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      background-color: rgba(18,20,24,0.42);
+      border: 1px solid rgba(255,255,255,0.14);
       border-radius: 24px;
       padding: 32px 28px;
       width: 100%;
       max-width: 360px;
       text-align: center;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.02);
+      box-shadow: 0 22px 60px rgba(3,6,10,0.62), inset 0 1px 0 rgba(255,255,255,0.03);
       transform: translateY(18px) scale(.995);
       opacity: 0;
       will-change: transform, opacity;
+      overflow: visible;
+    }
+
+    /* stronger glass border/highlight */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      mix-blend-mode: overlay;
+      z-index: 1;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      left: 1px; right: 1px; top: 1px;
+      height: 50%;
+      border-radius: 22px 22px 0 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 2;
     }
 
     /* entrance animation */
@@ -85,6 +114,56 @@
       justify-content: center;
     }
 
+    /* make the whole avatar circle scale together */
+    .avatar-wrap {
+      transition: transform 760ms cubic-bezier(.16,1,.3,1), box-shadow 760ms ease;
+      transform-origin: center;
+      will-change: transform, box-shadow;
+      position: relative;
+      z-index: 4;
+    }
+
+    .avatar-wrap:hover,
+    .avatar-wrap:focus-within {
+      transform: translateY(-10px) scale(1.07);
+      box-shadow: 0 34px 84px rgba(2,6,12,0.7), 0 6px 22px rgba(0,0,0,0.22) inset;
+    }
+
+    /* clickable avatar link */
+    .avatar-link {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      transition: transform 760ms cubic-bezier(.16,1,.3,1), box-shadow 760ms ease;
+      will-change: transform, box-shadow;
+      outline: none;
+      text-decoration: none;
+      transform-origin: center;
+      perspective: 700px;
+    }
+
+    .avatar-link:focus-visible {
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.08), 0 10px 30px rgba(0,0,0,0.36);
+    }
+
+    .avatar-link:hover {
+      /* keep inner link static; visual lift handled by .avatar-wrap */
+      box-shadow: 0 20px 50px rgba(2,6,12,0.56);
+    }
+
+    .avatar-link::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.35) inset;
+      pointer-events: none;
+      transition: box-shadow 760ms ease, opacity 760ms ease;
+      opacity: 0.6;
+    }
+
     .avatar-img {
       width: 100%;
       height: 100%;
@@ -92,18 +171,35 @@
       display: block;
       -webkit-user-drag: none;
       image-rendering: -webkit-optimize-contrast;
+      transition: transform 760ms cubic-bezier(.16,1,.3,1), filter 760ms ease;
+      transform-origin: center;
+      backface-visibility: hidden;
+    }
+
+    /* softer, synchronized zoom without offset so image stays centered in circle */
+    .avatar-link:hover .avatar-img {
+      transform: scale(1.08);
+      filter: drop-shadow(0 16px 26px rgba(0,0,0,0.46));
+    }
+
+    .avatar-link:active .avatar-img {
+      transform: scale(1.04);
+      transition: transform 140ms ease;
     }
 
     h1 {
       margin: 8px 0 4px;
       font-size: 22px;
       font-weight: 600;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.62);
     }
 
     p {
       margin: 0 0 20px;
       font-size: 14px;
-      opacity: 0.85;
+      opacity: 0.95;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.54);
     }
 
     .links a {
@@ -177,22 +273,24 @@
 
   <div class="card">
     <div class="avatar-wrap">
-      <img src="avatar.png" srcset="avatar.png 1x, avatar@2x.png 2x" alt="Avatar" class="avatar-img" loading="lazy" decoding="async" />
+      <a class="avatar-link" href="https://youtu.be/1wYXSxCvN68?si=BSdqHG6y8C0xYXn8" target="_blank" rel="noopener noreferrer" aria-label="Open YouTube video">
+        <img src="avatar.jpg" srcset="avatar.jpg 1x, avatar@2x.png 2x" alt="Аватар MyNameRoman" class="avatar-img" loading="lazy" decoding="async" width="128" height="128" />
+      </a>
     </div>
 
     <h1>MyNameRoman</h1>
-    <p>DevOps · Aboba · Silly-boy</p>
+    <p>Kept u waiting, huh?</p>
 
     <div class="links">
-      <a href="https://t.me/RaikoNet_Redirect" target="_blank">
+      <a href="https://t.me/RaikoNet_Redirect" target="_blank" rel="noopener noreferrer">
         <img src="icons/telegram.svg" class="icon" alt="My VPN project" />
         My VPN project
       </a>
-      <a href="https://github.com/MyNameRoman" target="_blank">
+      <a href="https://github.com/MyNameRoman" target="_blank" rel="noopener noreferrer">
         <img src="icons/github.svg" class="icon" alt="GitHub" />
         GitHub
       </a>
-      <a href="https://steamcommunity.com/id/MyNameRoman/" target="_blank">
+      <a href="https://steamcommunity.com/id/MyNameRoman/" target="_blank" rel="noopener noreferrer">
         <img src="icons/steam.svg" class="icon" alt="Steam" />
         Steam
       </a>
