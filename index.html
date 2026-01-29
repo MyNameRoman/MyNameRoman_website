@@ -30,14 +30,21 @@
       justify-content: center;
       color: var(--text-color);
       position: relative;
-      overflow: hidden;
+      overflow: hidden; /* запрет вертикальной и горизонтальной прокрутки */
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none; /* предотвратить жесты прокрутки на некоторых устройствах */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
 
     body::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: url('background.jpg') center / cover no-repeat;
+      background: url('background.jpg') var(--bg-pos-x,50%) var(--bg-pos-y,50%) / cover no-repeat;
       filter: blur(18px) brightness(0.7);
       transform: scale(1.1);
       z-index: -1;
@@ -46,7 +53,7 @@
     .card {
       position: relative;
       z-index: 2;
-      backdrop-filter: blur(20px) saturate(1.05);
+      backdrop-filter: blur(6px) saturate(1.05);
       background: linear-gradient(180deg, var(--card-gradient-top), var(--card-gradient-bottom));
       border: 1px solid var(--card-border);
       border-radius: 24px;
@@ -57,18 +64,48 @@
       box-shadow: 0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.02);
       transform: translateY(18px) scale(.995);
       opacity: 0;
+<<<<<<< Updated upstream
       will-change: transform, opacity;
+=======
+      contain: layout style paint;
+>>>>>>> Stashed changes
     }
 
-    /* entrance animation */
+    /* entrance animations */
     @keyframes popIn {
       0% { transform: translateY(18px) scale(.995); opacity: 0; }
       60% { transform: translateY(-6px) scale(1.01); opacity: 1; }
       100% { transform: translateY(0) scale(1); opacity: 1; }
     }
 
+    @keyframes fadeInUp {
+      0% { transform: translateY(8px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes avatarPulse {
+      0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.25), 0 0 20px rgba(255,255,255,0); }
+      50% { box-shadow: 0 6px 18px rgba(0,0,0,0.25), 0 0 35px rgba(255,255,255,0.25); }
+    }
+
     body.is-loaded .card {
       animation: popIn 1200ms cubic-bezier(.2,.9,.3,1) 160ms both;
+    }
+
+    body.is-loaded h1 {
+      animation: fadeInUp 600ms ease 320ms both;
+    }
+
+    body.is-loaded p {
+      animation: fadeInUp 600ms ease 420ms both;
+    }
+
+    body.is-loaded .links {
+      animation: fadeInUp 600ms ease 520ms both;
+    }
+
+    body.is-loaded .avatar-wrap {
+      animation: avatarPulse 3000ms ease-in-out 800ms infinite;
     }
 
     .avatar-wrap {
@@ -83,6 +120,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: transform 300ms ease, filter 300ms ease;
+      cursor: pointer;
     }
 
     .avatar-img {
@@ -91,7 +130,21 @@
       object-fit: cover;
       display: block;
       -webkit-user-drag: none;
+<<<<<<< Updated upstream
       image-rendering: -webkit-optimize-contrast;
+=======
+      image-rendering: auto;
+      transition: transform 300ms ease;
+    }
+
+    .avatar-wrap:hover {
+      transform: scale(1.08) rotate(2deg);
+      filter: brightness(1.08) drop-shadow(0 0 15px rgba(255,255,255,0.25));
+    }
+
+    .avatar-wrap:hover .avatar-img {
+      transform: scale(1.05);
+>>>>>>> Stashed changes
     }
 
     h1 {
@@ -118,7 +171,27 @@
       margin-bottom: 12px;
       transition: background 180ms ease, transform 220ms ease, box-shadow 220ms ease;
       transform-origin: center;
+<<<<<<< Updated upstream
       will-change: transform;
+=======
+      contain: layout style;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .links a::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      transform: translateX(-100%);
+      transition: transform 500ms ease;
+      pointer-events: none;
+    }
+
+    .links a:hover::before {
+      transform: translateX(100%);
+>>>>>>> Stashed changes
     }
 
     .links a:focus-visible {
@@ -166,6 +239,31 @@
       p { font-size: 15px; }
     }
 
+    /* Mobile optimizations */
+    @media (max-width: 640px) {
+      .card {
+        margin: 16px;
+        max-width: none;
+      }
+      
+      .links a {
+        padding: 14px 16px;
+        font-size: 15px;
+      }
+    }
+
+    /* Improve touch interaction */
+    @media (hover: none) and (pointer: coarse) {
+      .links a:hover {
+        transform: none;
+      }
+      
+      .links a:active {
+        background: var(--link-bg-hover);
+        transform: scale(0.98);
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .card { transition: none; animation: none !important; }
       .links a { transition: none; }
@@ -176,9 +274,15 @@
 <body>
 
   <div class="card">
+<<<<<<< Updated upstream
     <div class="avatar-wrap">
       <img src="avatar.png" srcset="avatar.png 1x, avatar@2x.png 2x" alt="Avatar" class="avatar-img" loading="lazy" decoding="async" />
     </div>
+=======
+    <a href="https://youtu.be/1wYXSxCvN68?si=XtndXKrUFVBX9ufW" target="_blank" rel="noopener noreferrer" class="avatar-wrap" aria-label="Open video">
+      <img src="avatar.jpg?v=1" alt="Avatar" class="avatar-img" width="128" height="128" loading="eager" decoding="sync" />
+    </a>
+>>>>>>> Stashed changes
 
     <h1>MyNameRoman</h1>
     <p>DevOps · Aboba · Silly-boy</p>
@@ -206,9 +310,26 @@
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
       const canvas = document.getElementById('snow');
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: false });
       let W = canvas.width = innerWidth;
       let H = canvas.height = innerHeight;
+      
+      // Reduce flakes on mobile / low-memory / save-data for better performance
+      const isMobile = window.innerWidth < 640;
+      let flakeCount = Math.min(160, Math.floor(W / 7));
+      if (isMobile) flakeCount = Math.min(80, Math.floor(W / 10));
+      // reduce further on low-memory devices
+      try {
+        const mem = navigator.deviceMemory || 4;
+        if (mem <= 1.5) flakeCount = Math.min(flakeCount, 50);
+        else if (mem <= 2) flakeCount = Math.min(flakeCount, 80);
+      } catch(e){}
+      // respect save-data setting
+      try {
+        if (navigator.connection && navigator.connection.saveData) {
+          flakeCount = Math.min(flakeCount, 60);
+        }
+      } catch(e){}
 
       window.addEventListener('resize', () => {
         W = canvas.width = innerWidth;
@@ -216,8 +337,11 @@
       });
 
       const flakes = [];
+<<<<<<< Updated upstream
       const flakeCount = Math.min(120, Math.max(24, Math.floor(W / 30)));
 
+=======
+>>>>>>> Stashed changes
       function rand(min, max){ return Math.random() * (max - min) + min; }
 
       for (let i=0;i<flakeCount;i++){
@@ -272,18 +396,37 @@
         }
       }
 
+<<<<<<< Updated upstream
       function loop(ts){
         const t = ts || performance.now();
         draw(t * 0.001);
+=======
+      let rafId = null;
+      let running = true;
+      function loop(){
+        if (!running) { rafId = requestAnimationFrame(loop); return; }
+        draw();
+>>>>>>> Stashed changes
         update();
-        requestAnimationFrame(loop);
+        rafId = requestAnimationFrame(loop);
       }
+
+      // Pause snow when page is hidden to save CPU/battery
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          running = false;
+        } else {
+          running = true;
+        }
+      }, { passive: true });
 
       // trigger entrance animation after a tick
       requestAnimationFrame(()=>{ document.body.classList.add('is-loaded'); });
       loop();
     })();
   </script>
+
+  
 
 </body>
 </html>
