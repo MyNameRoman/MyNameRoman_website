@@ -380,7 +380,6 @@
         let height;
         let animationId;
         let previousTime = 0;
-        let lastPaint = 0;
 
         function rand(min, max) {
           return Math.random() * (max - min) + min;
@@ -419,11 +418,9 @@
 
         function paint(time) {
           animationId = requestAnimationFrame(paint);
-          if (time - lastPaint < 1000 / 30) return;
 
           const delta = Math.min((time - previousTime) / 1000 || 0, .05);
           previousTime = time;
-          lastPaint = time;
           ctx.clearRect(0, 0, width, height);
 
           for (const petal of petals) {
